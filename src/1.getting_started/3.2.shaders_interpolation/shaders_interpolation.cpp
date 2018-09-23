@@ -1,6 +1,7 @@
 #include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <cmath>
 
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
@@ -10,17 +11,21 @@ const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 const char *vertexShaderSource =
         "#version 330 core\n"
-        "layout (location = 0) in vec3 aPos;\n"
+        "layout (location = 0) in vec3 aPos; // 位置变量的属性位置值为 0 \n"
+        "layout (location = 1) in vec3 aColor; // 颜色变量的属性位置值为 1 \n"
+        "out vec3 ourColor; // 向片段着色器输出一个颜色 \n"
         "void main()\n"
         "{\n"
-        "   gl_Position = vec4(aPos.x, aPos.y, aPos.z, 1.0);\n"
+        "   gl_Position = vec4(aPos, 1.0);\n"
+        "   ourColor = aColor; // 将ourColor设置为我们从顶点数据那里得到的输入颜色\n"
         "}\0";
 const char *fragmentShaderSource =
         "#version 330 core\n"
         "out vec4 FragColor;\n"
+        "in vec3 ourColor;\n"
         "void main()\n"
         "{\n"
-        "   FragColor = vec4(1.0f, 0.5f, 0.2f, 1.0f);\n"
+        "   FragColor = vec4(ourColor, 1.0);\n"
         "}\n\0";
 
 int main()
@@ -99,12 +104,10 @@ int main()
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
     float vertices[] = {
-            -0.5f, -0.5f, 0.0f, // left  
-            0.5f, -0.5f, 0.0f, // right 
-            0.0f, 0.5f, 0.0f,  // top  
-            0.0f, -0.5f, 0.0f,  // left
-            0.9f, -0.5f, 0.0f,  // right
-            0.45f, 0.5f, 0.0f
+            // 位置            // 颜色
+            0.5f, -0.5f, 0.0f, 1.0f, 0.0f, 0.0f,   // 右下
+            -0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 0.0f,   // 左下
+            0.0f, 0.5f, 0.0f, 0.0f, 0.0f, 1.0f    // 顶部
     };
     GLuint VBO, VAO;
     glGenVertexArrays(1, &VAO);
@@ -120,11 +123,11 @@ int main()
     // 把之前定义的顶点数据复制到缓冲的内存中：
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
-    // 告诉OpenGL该如何解析顶点数据（应用到逐个顶点属性上）
-    // 设置顶点属性指针
-    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
-    // 设置之后enable
+    // 位置属性
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) 0);
     glEnableVertexAttribArray(0);
+    glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, 6 * sizeof(float), (void *) (3* sizeof(float)));
+    glEnableVertexAttribArray(1);
 
     // 解绑
     // note that this is allowed, the call to glVertexAttribPointer registered VBO as the vertex attribute's bound vertex buffer object so afterwards we can safely unbind
@@ -143,12 +146,13 @@ int main()
         // render
         glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-
+      
         // 绘制物体
         glUseProgram(shaderProgram);
+
         glBindVertexArray(VAO);
 
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // 检查并调用事件，交换缓冲
         glfwSwapBuffers(window);
