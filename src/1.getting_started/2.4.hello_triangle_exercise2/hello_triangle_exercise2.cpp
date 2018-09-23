@@ -96,28 +96,43 @@ int main()
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
-    float vertices[] = {
+    float vertices1[] = {
             -0.5f, -0.5f, 0.0f, // left  
             0.5f, -0.5f, 0.0f, // right 
             0.0f, 0.5f, 0.0f,  // top
     };
-    GLuint VBO, VAO;
-    glGenVertexArrays(1, &VAO);
-    glGenBuffers(1, &VBO);
+    float vertices2[] = {
+            0.0f, -0.5f, 0.0f,  // left
+            0.9f, -0.5f, 0.0f,  // right
+            0.45f, 0.5f, 0.0f
+    };
+    GLuint VBOs[2], VAOs[2];
+    glGenVertexArrays(2, VAOs);
+    glGenBuffers(2, VBOs);
 
+    // 第一个三角形
     // 1. 绑定VAO
-    glBindVertexArray(VAO);
-
+    glBindVertexArray(VAOs[0]);
     // 2. 把顶点数组复制到缓冲中供OpenGL使用
-    // 把新创建的缓冲绑定到GL_ARRAY_BUFFER目标上
-    // 从这一刻起，我们使用的任何（在 GL_ARRAY_BUFFER 目标上的）缓冲调用都会用来配置当前绑定的缓冲(VBO)。
-    glBindBuffer(GL_ARRAY_BUFFER, VBO);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[0]);
     // 把之前定义的顶点数据复制到缓冲的内存中：
-    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices1), vertices1, GL_STATIC_DRAW);
 
     // 告诉OpenGL该如何解析顶点数据（应用到逐个顶点属性上）
     // 设置顶点属性指针
     glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 3 * sizeof(float), (void *) 0);
+    // 设置之后enable
+    glEnableVertexAttribArray(0);
+
+    // 第二个三角形
+    glBindVertexArray(VAOs[1]);
+    glBindBuffer(GL_ARRAY_BUFFER, VBOs[1]);
+    // 把之前定义的顶点数据复制到缓冲的内存中：
+    glBufferData(GL_ARRAY_BUFFER, sizeof(vertices2), vertices2, GL_STATIC_DRAW);
+
+    // 告诉OpenGL该如何解析顶点数据（应用到逐个顶点属性上）
+    // 设置顶点属性指针
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void *) 0);
     // 设置之后enable
     glEnableVertexAttribArray(0);
 
@@ -141,9 +156,10 @@ int main()
 
         // 绘制物体
         glUseProgram(shaderProgram);
-        glBindVertexArray(VAO);
-
-        glDrawArrays(GL_TRIANGLES, 0, 6);
+        glBindVertexArray(VAOs[0]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
+        glBindVertexArray(VAOs[1]);
+        glDrawArrays(GL_TRIANGLES, 0, 3);
 
         // 检查并调用事件，交换缓冲
         glfwSwapBuffers(window);
@@ -151,8 +167,8 @@ int main()
     }
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
-    glDeleteVertexArrays(1, &VAO);
-    glDeleteBuffers(1, &VBO);
+    glDeleteVertexArrays(2, VAOs);
+    glDeleteBuffers(2, VBOs);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
     // ------------------------------------------------------------------
