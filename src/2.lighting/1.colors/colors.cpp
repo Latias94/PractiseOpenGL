@@ -162,17 +162,19 @@ int main()
         processInput(window);
 
         // render
-        glClearColor(0.2f, 0.3f, 0.3f, 1.0f);
+        glClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
         // 清楚颜色缓冲和深度缓冲（因为用了深度测试）
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-
+        
         // 在此之前不要忘记首先 use 对应的着色器程序（来设定uniform）
         // 绘制物体
         lightingShader.use();
         // 换了shader_m.h 头文件，设置vec3变得简单
         lightingShader.setVec3("objectColor", 1.0f, 0.5f, 0.31f);
+        // 改了光照颜色，下面的光照颜色也要一起改 要改成白光可以改成 1.0 1.0 1.0
         lightingShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
+//        lightingShader.setVec3("lightColor",  1.0f, 0.5f, 1.0f);
 
         // view/projection transformations
         glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
@@ -193,6 +195,8 @@ int main()
         lampShader.use();
         lampShader.setMat4("projection", projection);
         lampShader.setMat4("view", view);
+        lightingShader.setVec3("lightColor",  1.0f, 0.5f, 1.0f);
+//        lightingShader.setVec3("lightColor",  1.0f, 1.0f, 1.0f);
         // 把灯位移到这里，然后将它缩小一点，让它不那么明显
         model = glm::mat4();
         model = glm::translate(model, lightPos);
