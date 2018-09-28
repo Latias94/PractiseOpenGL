@@ -56,7 +56,7 @@ endif (WIN32)
 
 set(CHAPTERS
         1.getting_started
-#        2.lighting
+        2.lighting
 #        3.model_loading
 #        4.advanced_opengl
 #        5.advanced_lighting
@@ -90,9 +90,9 @@ set(1.getting_started
         7.3.camera_mouse_zoom
         7.4.camera_class
         )
-#
-#set(2.lighting
-#        1.colors
+
+set(2.lighting
+        1.colors
 #        2.1.basic_lighting_diffuse
 #        2.2.basic_lighting_specular
 #        3.1.materials
@@ -105,8 +105,8 @@ set(1.getting_started
 #        5.3.light_casters_spot
 #        5.4.light_casters_spot_soft
 #        6.multiple_lights
-#        )
-#
+        )
+
 #set(3.model_loading
 #        1.model_loading
 #        )

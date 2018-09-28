@@ -53,7 +53,7 @@ int main()
     glfwMakeContextCurrent(window);
     // 用户改变窗口的大小的时候，视口也应该被调整。
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
-    // 了计算俯仰角和偏航角，我们需要让GLFW监听鼠标移动事件
+    // 计算俯仰角和偏航角，我们需要让GLFW监听鼠标移动事件
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
     // 首先我们要告诉GLFW，它应该隐藏光标，并捕捉(Capture)它。
