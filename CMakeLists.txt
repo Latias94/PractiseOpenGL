@@ -95,8 +95,8 @@ set(2.lighting
         1.colors
         2.1.basic_lighting_diffuse
         2.2.basic_lighting_specular
-#        3.1.materials
-#        3.2.materials_exercise1
+        3.1.materials
+        3.2.materials_exercise1
 #        4.1.lighting_maps_diffuse_map
 #        4.2.lighting_maps_specular_map
 #        4.3.lighting_maps_exercise4
