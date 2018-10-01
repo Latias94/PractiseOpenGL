@@ -97,9 +97,9 @@ set(2.lighting
         2.2.basic_lighting_specular
         3.1.materials
         3.2.materials_exercise1
-#        4.1.lighting_maps_diffuse_map
-#        4.2.lighting_maps_specular_map
-#        4.3.lighting_maps_exercise4
+        4.1.lighting_maps_diffuse_map
+        4.2.lighting_maps_specular_map
+        4.3.lighting_maps_exercise4
 #        5.1.light_casters_directional
 #        5.2.light_casters_point
 #        5.3.light_casters_spot
