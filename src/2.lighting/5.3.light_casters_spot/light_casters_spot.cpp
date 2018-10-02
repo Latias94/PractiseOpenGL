@@ -1,20 +1,19 @@
+#include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
 #include <stb_image.h>
+
+#include <learnopengl/shader_m.h>
+#include <learnopengl/camera.h>
+#include <learnopengl/filesystem.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <learnopengl/filesystem.h>
-#include <learnopengl/shader_m.h>
-#include <learnopengl/camera.h>
-
-#include <iostream>
-
 void framebuffer_size_callback(GLFWwindow *window, int width, int height);
-void mouse_callback(GLFWwindow *window, double xpos, double ypos);
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+void mouse_callback(GLFWwindow* window, double xpos, double ypos);
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
 void processInput(GLFWwindow *window);
 unsigned int loadTexture(const char *path);
 
@@ -23,12 +22,15 @@ const unsigned int SCR_HEIGHT = 600;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
+
+// 我们必须先在程序中储存上一帧的鼠标位置，
+// 我们把它的初始值设置为屏幕的中心（屏幕的尺寸是800x600）
+float lastX =  800.0f / 2.0;
+float lastY =  600.0 / 2.0;
 bool firstMouse = true;
 
 // timing
-float deltaTime = 0.0f;
+float deltaTime = 0.0f;	// time between current frame and last frame
 float lastFrame = 0.0f;
 
 // 光源在场景的世界空间坐标中的位置
@@ -56,8 +58,7 @@ int main()
     // 计算俯仰角和偏航角，我们需要让GLFW监听鼠标移动事件
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
-
-    // tell GLFW to capture our mouse
+    // 首先我们要告诉GLFW，它应该隐藏光标，并捕捉(Capture)它。
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
     // GLAD是用来管理OpenGL的函数指针的，所以在调用任何OpenGL的函数之前我们需要初始化GLAD。
@@ -71,8 +72,8 @@ int main()
 
     // build and compile our shader program
     // ------------------------------------
-    Shader lightingShader("4.3.lighting_maps.vs.glsl", "4.3.lighting_maps.fs.glsl");
-    Shader lampShader("4.3.lamp.vs.glsl", "4.3.lamp.fs.glsl");
+    Shader lightingShader("5.3.light_casters.vs.glsl", "5.3.light_casters.fs.glsl");
+    Shader lampShader("5.3.lamp.vs.glsl", "5.3.lamp.fs.glsl");
 
     // set up vertex data (and buffer(s)) and configure vertex attributes
     // ------------------------------------------------------------------
@@ -119,6 +120,20 @@ int main()
             0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  1.0f,  0.0f,
             -0.5f,  0.5f,  0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  0.0f,
             -0.5f,  0.5f, -0.5f,  0.0f,  1.0f,  0.0f,  0.0f,  1.0f
+    };
+
+    // 为每个立方体定义一个位移向量来指定它在世界空间的位置
+    glm::vec3 cubePositions[] = {
+            glm::vec3(0.0f, 0.0f, 0.0f),
+            glm::vec3(2.0f, 5.0f, -15.0f),
+            glm::vec3(-1.5f, -2.2f, -2.5f),
+            glm::vec3(-3.8f, -2.0f, -12.3f),
+            glm::vec3(2.4f, -0.4f, -3.5f),
+            glm::vec3(-1.7f, 3.0f, -7.5f),
+            glm::vec3(1.3f, -2.0f, -2.5f),
+            glm::vec3(1.5f, 2.0f, -2.5f),
+            glm::vec3(1.5f, 0.2f, -1.5f),
+            glm::vec3(-1.3f, 1.0f, -1.5f)
     };
 
     GLuint VBO, cubeVAO;
@@ -201,7 +216,10 @@ int main()
         // 在此之前不要忘记首先 use 对应的着色器程序（来设定uniform）
         // 绘制物体
         lightingShader.use();
-        lightingShader.setVec3("light.position", lightPos);
+        // 设置镜头为聚光灯
+        lightingShader.setVec3("light.position", camera.Position);
+        lightingShader.setVec3("light.direction", camera.Front);
+        lightingShader.setFloat("light.cutOff", glm::cos(glm::radians(12.5f)));
         // 获得摄像机位置来实现高光反射
         lightingShader.setVec3("viewPos", camera.Position);
 
@@ -209,49 +227,60 @@ int main()
         lightingShader.setVec3("light.ambient", 0.2f, 0.2f, 0.2f);
         lightingShader.setVec3("light.diffuse", 0.5f, 0.5f, 0.5f);
         lightingShader.setVec3("light.specular", 1.0f, 1.0f, 1.0f);
-        // 改用镜面光贴图
-//        lightingShader.setVec3("material.specular", 0.5f, 0.5f, 0.5f);
+        // 设置衰减公式的值
+        lightingShader.setFloat("light.constant", 1.0f);
+        lightingShader.setFloat("light.linear", 0.09f);
+        lightingShader.setFloat("light.quadratic", 0.032f);
 
-        lightingShader.setFloat("material.shininess", 64.0f);
+        lightingShader.setFloat("material.shininess", 32.0f);
 
         // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
-                                                100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         lightingShader.setMat4("projection", projection);
         lightingShader.setMat4("view", view);
 
         // world transformation
         glm::mat4 model;
-//        model = rotate(model, (float) glfwGetTime(), glm::vec3(1.0f, 1.0f, 1.0f));
         lightingShader.setMat4("model", model);
 
-        // 绑定漫反射贴图
+        // bind textures on corresponding texture units
+        // 为了使用第二个纹理（以及第一个），我们必须改变一点渲染流程，
+        // 先绑定两个纹理到对应的纹理单元，然后定义哪个uniform采样器对应哪个纹理单元
+        // bind diffuse map
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, diffuseMap);
-
-        // 绑定镜面光贴图
+        // bind specular map
         glActiveTexture(GL_TEXTURE1);
         glBindTexture(GL_TEXTURE_2D, specularMap);
-        
-        // 绑定放射光贴图
-        glActiveTexture(GL_TEXTURE2);
-        glBindTexture(GL_TEXTURE_2D, emissionMap);
-        // 渲染cube
-        glBindVertexArray(cubeVAO);
-        glDrawArrays(GL_TRIANGLES, 0, 36);
 
-        // 渲染光源cube
-        lampShader.use();
-        lampShader.setMat4("projection", projection);
-        lampShader.setMat4("view", view);
-//        lightingShader.setVec3("lightColor", 1.0f, 1.0f, 1.0f);
-        // 把灯位移到这里，然后将它缩小一点，让它不那么明显
-        model = glm::mat4();
-        model = glm::translate(model, lightPos);
-        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
-        lampShader.setMat4("model", model);
-        // 绘制灯立方体对象
+        glBindVertexArray(cubeVAO);
+        // 从1算是因为0的话乘以时间不变，看不到旋转效果
+        for (unsigned int i = 1; i <= 10; ++i)
+        {
+            // calculate the model matrix for each object and pass it to shader before drawing
+            glm::mat4 model;
+            // 移到其他位置方便观察
+            model = glm::translate(model, cubePositions[i]);
+            // 每个正方体旋转的角度也不同
+            float angle = 20.0f * i;
+            model = glm::rotate(model, (float) glfwGetTime() * glm::radians(angle), glm::vec3(1.0f, 0.3f, 0.5f));
+            lightingShader.setMat4("model", model);
+
+            // 绘制立方体
+            glDrawArrays(GL_TRIANGLES, 0, 36);
+        }
+
+        // also draw the lamp object
+        // 现在镜头为聚光灯 先禁用之前的光源
+//        lampShader.use();
+//        lampShader.setMat4("projection", projection);
+//        lampShader.setMat4("view", view);
+//        model = glm::mat4();
+//        model = glm::translate(model, lightPos);
+//        model = glm::scale(model, glm::vec3(0.2f)); // a smaller cube
+//        lampShader.setMat4("model", model);
+
         glBindVertexArray(lightVAO);
         glDrawArrays(GL_TRIANGLES, 0, 36);
 
@@ -259,10 +288,10 @@ int main()
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
+
     // optional: de-allocate all resources once they've outlived their purpose:
     // ------------------------------------------------------------------------
     glDeleteVertexArrays(1, &cubeVAO);
-    glDeleteVertexArrays(1, &lightVAO);
     glDeleteBuffers(1, &VBO);
 
     // glfw: terminate, clearing all previously allocated GLFW resources.
@@ -293,8 +322,15 @@ void processInput(GLFWwindow *window)
 
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
-void mouse_callback(GLFWwindow *window, double xpos, double ypos)
+// 在处理FPS风格摄像机的鼠标输入的时候，我们必须在最终获取方向向量之前做下面这几步：
+//
+// 1. 计算鼠标距上一帧的偏移量。
+// 2. 把偏移量添加到摄像机的俯仰角和偏航角中。
+// 3. 对偏航角和俯仰角进行最大和最小值的限制。
+// 4. 计算方向向量。
+void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 {
+    // 检验我们是否是第一次获取鼠标输入，如果是，那么我们先把鼠标的初始位置更新为xpos和ypos值
     if (firstMouse)
     {
         lastX = xpos;
@@ -303,8 +339,7 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos)
     }
 
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
+    float yoffset = lastY - ypos; // 注意这里是相反的，因为y坐标是从底部往顶部依次增大的
     lastX = xpos;
     lastY = ypos;
 
@@ -313,7 +348,8 @@ void mouse_callback(GLFWwindow *window, double xpos, double ypos)
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
-void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
+// 实现一个缩放(Zoom)接口
+void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(yoffset);
 }
@@ -336,7 +372,7 @@ unsigned int loadTexture(char const * path)
             format = GL_RGB;
         else if (nrComponents == 4)
             format = GL_RGBA;
-        
+
         // 绑定它，让之后任何的纹理指令都可以配置当前绑定的纹理
         glBindTexture(GL_TEXTURE_2D, textureID);
         glTexImage2D(GL_TEXTURE_2D, 0, format, width, height, 0, format, GL_UNSIGNED_BYTE, data);
