@@ -57,7 +57,7 @@ endif (WIN32)
 set(CHAPTERS
         1.getting_started
         2.lighting
-#        3.model_loading
+        3.model_loading
 #        4.advanced_opengl
 #        5.advanced_lighting
 #        6.pbr
@@ -107,9 +107,9 @@ set(2.lighting
         6.multiple_lights
         )
 
-#set(3.model_loading
-#        1.model_loading
-#        )
+set(3.model_loading
+        1.model_loading
+        )
 #
 #set(4.advanced_opengl
 #        1.1.depth_testing
@@ -194,6 +194,7 @@ foreach (CHAPTER ${CHAPTERS})
         set(NAME "${CHAPTER}__${DEMO}")
         add_executable(${NAME} ${SOURCE})
         target_link_libraries(${NAME} ${LIBS})
+
         if (WIN32)
             set_target_properties(${NAME} PROPERTIES RUNTIME_OUTPUT_DIRECTORY "${CMAKE_SOURCE_DIR}/bin/${CHAPTER}")
         elseif (UNIX AND NOT APPLE)
