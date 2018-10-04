@@ -1,89 +1,86 @@
+#include <iostream>
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
+#include <stb_image.h>
+
+#include <learnopengl/shader_m.h>
+#include <learnopengl/camera.h>
+#include <learnopengl/filesystem.h>
+#include <learnopengl/model.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
-#include <learnopengl/filesystem.h>
-#include <learnopengl/shader_m.h>
-#include <learnopengl/camera.h>
-#include <learnopengl/model.h>
+void framebuffer_size_callback(GLFWwindow *window, int width, int height);
 
-#include <iostream>
+void mouse_callback(GLFWwindow *window, double xpos, double ypos);
 
-void framebuffer_size_callback(GLFWwindow* window, int width, int height);
-void mouse_callback(GLFWwindow* window, double xpos, double ypos);
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset);
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset);
+
 void processInput(GLFWwindow *window);
 
-// settings
+
 const unsigned int SCR_WIDTH = 800;
 const unsigned int SCR_HEIGHT = 600;
 
 // camera
 Camera camera(glm::vec3(0.0f, 0.0f, 3.0f));
-float lastX = SCR_WIDTH / 2.0f;
-float lastY = SCR_HEIGHT / 2.0f;
+
+// 我们必须先在程序中储存上一帧的鼠标位置，
+// 我们把它的初始值设置为屏幕的中心（屏幕的尺寸是800x600）
+float lastX = 800.0f / 2.0;
+float lastY = 600.0 / 2.0;
 bool firstMouse = true;
 
 // timing
-float deltaTime = 0.0f;
+float deltaTime = 0.0f;    // time between current frame and last frame
 float lastFrame = 0.0f;
 
 int main()
 {
-    // glfw: initialize and configure
-    // ------------------------------
     glfwInit();
     glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
     glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-
+    
 #ifdef __APPLE__
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // uncomment this statement to fix compilation on OS X
 #endif
 
-    // glfw window creation
-    // --------------------
-    GLFWwindow* window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", NULL, NULL);
-    if (window == NULL)
+    // glfwCreateWindow函数需要窗口的宽和高作为它的前两个参数。第三个参数表示这个窗口的名称（标题）
+    GLFWwindow *window = glfwCreateWindow(SCR_WIDTH, SCR_HEIGHT, "LearnOpenGL", nullptr, nullptr);
+    if (window == nullptr)
     {
         std::cout << "Failed to create GLFW window" << std::endl;
         glfwTerminate();
         return -1;
     }
+    // 创建完窗口我们就可以通知GLFW将我们窗口的上下文设置为当前线程的主上下文了。
     glfwMakeContextCurrent(window);
+    // 用户改变窗口的大小的时候，视口也应该被调整。
     glfwSetFramebufferSizeCallback(window, framebuffer_size_callback);
+    // 计算俯仰角和偏航角，我们需要让GLFW监听鼠标移动事件
     glfwSetCursorPosCallback(window, mouse_callback);
     glfwSetScrollCallback(window, scroll_callback);
-
-    // tell GLFW to capture our mouse
+    // 首先我们要告诉GLFW，它应该隐藏光标，并捕捉(Capture)它。
     glfwSetInputMode(window, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
 
-    // glad: load all OpenGL function pointers
-    // ---------------------------------------
-    if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress))
+    // GLAD是用来管理OpenGL的函数指针的，所以在调用任何OpenGL的函数之前我们需要初始化GLAD。
+    if (!gladLoadGLLoader((GLADloadproc) glfwGetProcAddress))
     {
         std::cout << "Failed to initialize GLAD" << std::endl;
         return -1;
     }
-
-    // configure global opengl state
-    // -----------------------------
+    // 开启深度测试
     glEnable(GL_DEPTH_TEST);
 
-    // build and compile shaders
-    // -------------------------
-    Shader ourShader("1.model_loading.vs", "1.model_loading.fs");
+    // build and compile our shader program
+    // ------------------------------------
+    Shader ourShader("1.model_loading.vs.glsl", "1.model_loading.fs.glsl");
 
-    // load models
-    // -----------
+    // 与其设置顶点，现在改为读取模型文件
     Model ourModel(FileSystem::getPath("resources/objects/nanosuit/nanosuit.obj"));
-
-
-    // draw in wireframe
-    //glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
     // render loop
     // -----------
@@ -95,34 +92,38 @@ int main()
         deltaTime = currentFrame - lastFrame;
         lastFrame = currentFrame;
 
-        // input
-        // -----
+        // 输入
         processInput(window);
 
         // render
-        // ------
+        // 背景颜色
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
+
+        // 清楚颜色缓冲和深度缓冲（因为用了深度测试）
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        // don't forget to enable shader before setting uniforms
+        // 在此之前不要忘记首先 use 对应的着色器程序（来设定uniform）
+        // 绘制物体
         ourShader.use();
 
         // view/projection transformations
-        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float)SCR_WIDTH / (float)SCR_HEIGHT, 0.1f, 100.0f);
+        glm::mat4 projection = glm::perspective(glm::radians(camera.Zoom), (float) SCR_WIDTH / (float) SCR_HEIGHT, 0.1f,
+                                                100.0f);
         glm::mat4 view = camera.GetViewMatrix();
         ourShader.setMat4("projection", projection);
         ourShader.setMat4("view", view);
 
         // render the loaded model
         glm::mat4 model;
-        model = glm::translate(model, glm::vec3(0.0f, -1.75f, 0.0f)); // translate it down so it's at the center of the scene
-        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));	// it's a bit too big for our scene, so scale it down
+        // translate it down so it's at the center of the scene
+        model = glm::translate(model,
+                               glm::vec3(0.0f, -1.75f, 0.0f));
+        // it's a bit too big for our scene, so scale it down
+        model = glm::scale(model, glm::vec3(0.2f, 0.2f, 0.2f));
         ourShader.setMat4("model", model);
         ourModel.Draw(ourShader);
 
-
-        // glfw: swap buffers and poll IO events (keys pressed/released, mouse moved etc.)
-        // -------------------------------------------------------------------------------
+        // 检查并调用事件，交换缓冲
         glfwSwapBuffers(window);
         glfwPollEvents();
     }
@@ -133,8 +134,11 @@ int main()
     return 0;
 }
 
-// process all input: query GLFW whether relevant keys are pressed/released this frame and react accordingly
-// ---------------------------------------------------------------------------------------------------------
+void framebuffer_size_callback(GLFWwindow *window, int width, int height)
+{
+    glViewport(0, 0, width, height);
+}
+
 void processInput(GLFWwindow *window)
 {
     if (glfwGetKey(window, GLFW_KEY_ESCAPE) == GLFW_PRESS)
@@ -150,19 +154,17 @@ void processInput(GLFWwindow *window)
         camera.ProcessKeyboard(RIGHT, deltaTime);
 }
 
-// glfw: whenever the window size changed (by OS or user resize) this callback function executes
-// ---------------------------------------------------------------------------------------------
-void framebuffer_size_callback(GLFWwindow* window, int width, int height)
-{
-    // make sure the viewport matches the new window dimensions; note that width and 
-    // height will be significantly larger than specified on retina displays.
-    glViewport(0, 0, width, height);
-}
-
 // glfw: whenever the mouse moves, this callback is called
 // -------------------------------------------------------
-void mouse_callback(GLFWwindow* window, double xpos, double ypos)
+// 在处理FPS风格摄像机的鼠标输入的时候，我们必须在最终获取方向向量之前做下面这几步：
+//
+// 1. 计算鼠标距上一帧的偏移量。
+// 2. 把偏移量添加到摄像机的俯仰角和偏航角中。
+// 3. 对偏航角和俯仰角进行最大和最小值的限制。
+// 4. 计算方向向量。
+void mouse_callback(GLFWwindow *window, double xpos, double ypos)
 {
+    // 检验我们是否是第一次获取鼠标输入，如果是，那么我们先把鼠标的初始位置更新为xpos和ypos值
     if (firstMouse)
     {
         lastX = xpos;
@@ -171,8 +173,7 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
     }
 
     float xoffset = xpos - lastX;
-    float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
+    float yoffset = lastY - ypos; // 注意这里是相反的，因为y坐标是从底部往顶部依次增大的
     lastX = xpos;
     lastY = ypos;
 
@@ -181,7 +182,8 @@ void mouse_callback(GLFWwindow* window, double xpos, double ypos)
 
 // glfw: whenever the mouse scroll wheel scrolls, this callback is called
 // ----------------------------------------------------------------------
-void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+// 实现一个缩放(Zoom)接口
+void scroll_callback(GLFWwindow *window, double xoffset, double yoffset)
 {
     camera.ProcessMouseScroll(yoffset);
 }
