@@ -99,7 +99,7 @@ int main()
         // 背景颜色
         glClearColor(0.05f, 0.05f, 0.05f, 1.0f);
 
-        // 清楚颜色缓冲和深度缓冲（因为用了深度测试）
+        // 清除颜色缓冲和深度缓冲（因为用了深度测试）
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         // 在此之前不要忘记首先 use 对应的着色器程序（来设定uniform）
