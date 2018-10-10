@@ -120,8 +120,8 @@ set(4.advanced_opengl
         4.face_culling
         5.1.framebuffers
 #        5.2.framebuffers_exercise1
-#        6.1.cubemaps_skybox
-#        6.2.cubemaps_environment_mapping
+        6.1.cubemaps_skybox
+        6.2.cubemaps_environment_mapping
 #        8.advanced_glsl_ubo
 #        9.1.geometry_shader_houses
 #        9.2.geometry_shader_exploding
