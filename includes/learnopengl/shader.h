@@ -1,6 +1,7 @@
 #ifndef SHADER_H
 #define SHADER_H
 
+#define STB_IMAGE_IMPLEMENTATION
 #include <glad/glad.h>
 #include <glm/glm.hpp>
 

@@ -123,9 +123,9 @@ set(4.advanced_opengl
         6.1.cubemaps_skybox
         6.2.cubemaps_environment_mapping
         8.advanced_glsl_ubo
-#        9.1.geometry_shader_houses
-#        9.2.geometry_shader_exploding
-#        9.3.geometry_shader_normals
+        9.1.geometry_shader_houses
+        9.2.geometry_shader_exploding
+        9.3.geometry_shader_normals
 #        10.1.instancing_quads
 #        10.2.asteroids
 #        10.3.asteroids_instanced
@@ -191,6 +191,7 @@ foreach (CHAPTER ${CHAPTERS})
                 "src/${CHAPTER}/${DEMO}/*.vs.glsl"
                 "src/${CHAPTER}/${DEMO}/*.fs.glsl"
                 "src/${CHAPTER}/${DEMO}/*.gs"
+                "src/${CHAPTER}/${DEMO}/*.gs.glsl"
                 )
         set(NAME "${CHAPTER}__${DEMO}")
         add_executable(${NAME} ${SOURCE})
@@ -213,6 +214,7 @@ foreach (CHAPTER ${CHAPTERS})
                 "src/${CHAPTER}/${DEMO}/*.fs.glsl"
                 "src/${CHAPTER}/${DEMO}/*.fs"
                 "src/${CHAPTER}/${DEMO}/*.gs"
+                "src/${CHAPTER}/${DEMO}/*.gs.glsl"
                 )
         foreach (SHADER ${SHADERS})
             if (WIN32)
