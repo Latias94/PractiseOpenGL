@@ -129,7 +129,7 @@ set(4.advanced_opengl
         10.1.instancing_quads
 #        10.2.asteroids    # Fail to set up assimp Library
 #        10.3.asteroids_instanced    # Fail to set up assimp Library
-#        11.anti_aliasing_offscreen
+        11.anti_aliasing_offscreen
         )
 
 #set(5.advanced_lighting
