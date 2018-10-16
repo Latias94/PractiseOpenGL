@@ -59,7 +59,7 @@ set(CHAPTERS
         2.lighting
         3.model_loading
         4.advanced_opengl
-#        5.advanced_lighting
+        5.advanced_lighting
 #        6.pbr
 #        7.in_practice
         )
@@ -132,8 +132,8 @@ set(4.advanced_opengl
         11.anti_aliasing_offscreen
         )
 
-#set(5.advanced_lighting
-#        1.advanced_lighting
+set(5.advanced_lighting
+        1.advanced_lighting
 #        2.gamma_correction
 #        3.1.1.shadow_mapping_depth
 #        3.1.2.shadow_mapping_base
@@ -149,8 +149,8 @@ set(4.advanced_opengl
 #        8.1.deferred_shading
 #        8.2.deferred_shading_volumes
 #        9.ssao
-#        )
-#
+        )
+
 #set(6.pbr
 #        1.1.lighting
 #        1.2.lighting_textured
