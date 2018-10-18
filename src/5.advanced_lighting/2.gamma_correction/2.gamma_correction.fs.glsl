@@ -45,7 +45,9 @@ void main()
     for(int i = 0; i < 4; ++i)
         lighting += BlinnPhong(normalize(fs_in.Normal), fs_in.FragPos, lightPositions[i], lightColors[i]);
     color *= lighting;
+    // sRGB模式是在近代的GPU上才有的东西。如果不支持sRGB，我们就需要自己在shader中进行伽马校正。
     // 我们在每个相关像素着色器运行的最后应用gamma校正，所以在发送到帧缓冲前，颜色就被校正了
+    // 对非线性输入纹理的校正
     if(gamma)
         color = pow(color, vec3(1.0/2.2));
     FragColor = vec4(color, 1.0);
