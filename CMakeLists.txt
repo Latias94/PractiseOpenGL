@@ -148,7 +148,7 @@ set(5.advanced_lighting
         7.bloom
 #        8.1.deferred_shading  # Fail to set up assimp Library
 #        8.2.deferred_shading_volumes  # Fail to set up assimp Library
-#        9.ssao
+#        9.ssao # Fail to set up assimp Library
         )
 
 #set(6.pbr
